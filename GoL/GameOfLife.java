@@ -2,10 +2,8 @@ package GoL;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-public class GameOfLife extends JFrame {
+public class GameOfLife implements Runnable {
     static JLabel GenerationLabel = new JLabel("1");
     static JLabel AliveLabel = new JLabel("0");
     JPanel gamePanel = new JPanel();
@@ -14,31 +12,35 @@ public class GameOfLife extends JFrame {
     JLabel alive = new JLabel("Alive: ");
     JButton PlayToggleButton = new JButton("Play/Pause");
     JButton ResetButton = new JButton("Reset");
+    JFrame masterFrame = new JFrame("Game of Life");
+    private int runCounter = 0;
 
     public GameOfLife() {
-        super("Game of Life");
         Main.init();
         AliveLabel.setText(String.valueOf(Main.countAlive()));
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(500, 500);
-        setLocationRelativeTo(null);
+        masterFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        masterFrame.setSize(500, 500);
+        masterFrame.setLocationRelativeTo(null);
         initComponents();
-        setVisible(true);
+        masterFrame.setVisible(true);
         draw();
-        while (true) {
-            play();
-        }
     }
-    void play() {
-
-        Main.run();
-        Main.mutations++;
-
-        while (!Main.playing) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+    public void run() {
+        System.out.println(Main.running + " " + Main.playing);
+        while (Main.running) {
+            System.out.println(Main.playing);
+            while (Main.playing) {
+                System.out.println("here3"); // here
+                updateAllNext();
+                boldlyGoIntoTheFuture();
+                System.out.println("Generation: " + (runCounter + 1));
+                GenerationLabel.setText(String.valueOf(runCounter + 1));
+                System.out.println("Alive " + Main.countAlive());
+                AliveLabel.setText(String.valueOf(Main.countAlive()));
+                draw();
+                System.out.println();
+                runCounter++;
+                pause();
             }
         }
     }
@@ -53,36 +55,23 @@ public class GameOfLife extends JFrame {
     void initComponents() {
         //JLabel playing = new JLabel("false");
 
-        PlayToggleButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!Main.playing) {
-                    Main.playing = true;
-                } else {
-                    Main.playing = false;
-                }
-                //playing.setText(String.valueOf(Main.playing));
-            }
+        PlayToggleButton.addActionListener(e -> {
+            Main.playing = !Main.playing;
+            //playing.setText(String.valueOf(Main.playing));
         });
 
-        ResetButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Main.mutations = 0;
-                Main.init();
-                try {
-                    remove(gamePanel);
-                } catch (Exception d) {
-                    // do nothing
-                }
-                draw();
-            }
+        ResetButton.addActionListener(e -> {
+            Main.setGridInitValues();
+            Main.mutations = 0;
+            runCounter = 0;
+            draw();
         });
 
         infoPanel.add(PlayToggleButton);
-        //infoPanel.add(ResetButton);
+        infoPanel.add(ResetButton);
         infoPanel.add(generations); infoPanel.add(GenerationLabel);
         infoPanel.add(alive); infoPanel.add(AliveLabel);
+        //infoPanel.add(playing);
         GenerationLabel.setName("GenerationLabel");
         AliveLabel.setName("AliveLabel");
         infoPanel.setName("infoPanel");
@@ -97,9 +86,9 @@ public class GameOfLife extends JFrame {
         }
         infoPanel.setLayout(new GridLayout());
         gamePanel.setLayout(new GridLayout(Main.size, Main.size, 1, 1));
-        setLayout(new GridLayout(2, 1, 20, 3));
-        add(infoPanel);
-        add(gamePanel);
+        masterFrame.setLayout(new GridLayout(2, 1, 20, 3));
+        masterFrame.add(infoPanel);
+        masterFrame.add(gamePanel);
 
     }
 
@@ -111,10 +100,44 @@ public class GameOfLife extends JFrame {
             }
             System.out.println();
         }
+    }
+    void checkNeighborsAndUpdateNext(int ii, int jj) {
+
+        int counter = 0;
+        for (int i = -1; i < 2; i++) {
+            for (int j = -1; j < 2; j++) {
+                if (Grids.gridNow[((ii + i + Main.size) % Main.size)][((jj + j + Main.size) % Main.size)].isAlive) {
+                    counter++;
+                }
+            }
+        }
+        if (Grids.gridNow[ii][jj].isAlive) {
+            counter--;
+        }
+        Grids.gridNext[ii][jj].update(counter, Grids.gridNow[ii][jj].isAlive);
+    }
+
+    private void updateAllNext() {
+        for (int ii = 0; ii < Main.size; ii++) {
+            System.out.println("here4");
+            for (int jj = 0; jj < Main.size; jj++) {
+                checkNeighborsAndUpdateNext(ii, jj);
+            }
+        }
+    }
+
+    private void boldlyGoIntoTheFuture() {
+        for (int ii = 0; ii < Main.size; ii++) {
+            for (int jj = 0; jj < Main.size; jj++) {
+                Grids.gridNow[ii][jj].isAlive = Grids.gridNext[ii][jj].isAlive;
+            }
+        }
+    }
+
+    private void pause() {
         try {
-            Thread.sleep(Main.speed);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.sleep(300);
+        } catch (InterruptedException ignored) {
         }
     }
 }
