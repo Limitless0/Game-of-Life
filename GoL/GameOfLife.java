@@ -26,11 +26,8 @@ public class GameOfLife implements Runnable {
         draw();
     }
     public void run() {
-        System.out.println(Main.running + " " + Main.playing);
-        while (Main.running) {
-            System.out.println(Main.playing);
-            while (Main.playing) {
-                System.out.println("here3"); // here
+        while (Main.running.get()) {
+            while (Main.playing.get()) {
                 updateAllNext();
                 boldlyGoIntoTheFuture();
                 System.out.println("Generation: " + (runCounter + 1));
@@ -40,24 +37,15 @@ public class GameOfLife implements Runnable {
                 draw();
                 System.out.println();
                 runCounter++;
-                pause();
+                pause(Main.speed);
             }
         }
     }
-    void resetGamePanel() {
-        gamePanel = new JPanel();
-        for (int ii = 0; ii < Main.size; ii++) {
-            for (int jj = 0; jj < Main.size; jj++) {
-                gamePanel.add(Grids.gridNow[ii][jj]);
-            }
-        }
-    }
+
     void initComponents() {
-        //JLabel playing = new JLabel("false");
 
         PlayToggleButton.addActionListener(e -> {
-            Main.playing = !Main.playing;
-            //playing.setText(String.valueOf(Main.playing));
+            Main.playing.set(!Main.playing.get());
         });
 
         ResetButton.addActionListener(e -> {
@@ -71,19 +59,18 @@ public class GameOfLife implements Runnable {
         infoPanel.add(ResetButton);
         infoPanel.add(generations); infoPanel.add(GenerationLabel);
         infoPanel.add(alive); infoPanel.add(AliveLabel);
-        //infoPanel.add(playing);
+        //infoPanel.add(new JLabel(String.valueOf(Main.playing)));
         GenerationLabel.setName("GenerationLabel");
         AliveLabel.setName("AliveLabel");
         infoPanel.setName("infoPanel");
         gamePanel.setName("gamePanel");
-
-
 
         for (int ii = 0; ii < Main.size; ii++) {
             for (int jj = 0; jj < Main.size; jj++) {
                 gamePanel.add(Grids.gridNow[ii][jj]);
             }
         }
+
         infoPanel.setLayout(new GridLayout());
         gamePanel.setLayout(new GridLayout(Main.size, Main.size, 1, 1));
         masterFrame.setLayout(new GridLayout(2, 1, 20, 3));
@@ -93,7 +80,6 @@ public class GameOfLife implements Runnable {
     }
 
     static void draw() {
-
         for (int ii = 0; ii < Main.size; ii++) {
             for (int jj = 0; jj < Main.size; jj++) {
                 Grids.gridNow[ii][jj].draw();
@@ -101,6 +87,7 @@ public class GameOfLife implements Runnable {
             System.out.println();
         }
     }
+
     void checkNeighborsAndUpdateNext(int ii, int jj) {
 
         int counter = 0;
@@ -119,7 +106,6 @@ public class GameOfLife implements Runnable {
 
     private void updateAllNext() {
         for (int ii = 0; ii < Main.size; ii++) {
-            System.out.println("here4");
             for (int jj = 0; jj < Main.size; jj++) {
                 checkNeighborsAndUpdateNext(ii, jj);
             }
@@ -134,9 +120,9 @@ public class GameOfLife implements Runnable {
         }
     }
 
-    private void pause() {
+    private void pause(long time) {
         try {
-            Thread.sleep(300);
+            Thread.sleep(time);
         } catch (InterruptedException ignored) {
         }
     }

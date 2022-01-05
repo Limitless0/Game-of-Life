@@ -1,22 +1,19 @@
 package GoL;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Main {
 
-    public static final long speed = 500;
+    public static final long speed = 20;
     static Random rand = new Random();
     static final int size = 10;
     static int mutations = 0;
-    static boolean playing = false;
-    static boolean running = true;
-    static Thread thread = new Thread(new GameOfLife());
+    static final AtomicBoolean playing = new AtomicBoolean(false);
+    static final AtomicBoolean running = new AtomicBoolean(true);
 
     public static void main(String[] args) {
-        //Scanner scan = new Scanner(System.in);
-        //size = //scan.nextInt();
-        //GameOfLife frame = new GameOfLife();
-        //long seed = rand.nextLong();
+        Thread thread = new Thread(new GameOfLife());
         thread.start();
     }
 

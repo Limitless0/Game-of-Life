@@ -40,7 +40,6 @@ public class Cell extends JPanel {
     void lighten() {
         this.setBackground(Color.LIGHT_GRAY);
     }
-
     void darken() {
         this.setBackground(Color.BLACK);
     }
